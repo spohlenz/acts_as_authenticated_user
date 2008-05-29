@@ -1,13 +1,65 @@
-ActsAsAuthenticatedUser
+acts_as_authenticated_user
 =======================
 
-Introduction goes here.
+acts_as_authenticated_user is a Rails user authentication plugin similar to the similarly named acts_as_authenticated.
 
 
-Example
-=======
+Example (Model)
+===============
 
-Example goes here.
+class User < ActiveRecord::Base
+  acts_as_authenticated_user
+end
+
+u = User.create(:login => 'sam', :password => 'foobar', :password_confirmation => 'foobar')
+User.authenticate('sam', 'foobar') => u
+User.authenticate('invalid', 'user') => nil
+
+acts_as_authenticated_user will validate the presence of login and password but any extra validations will need to be defined in the User model.
 
 
-Copyright (c) 2008 [name of plugin creator], released under the MIT license
+Example (Controller)
+====================
+
+In the controller you want to protect:
+
+class PrivatePageController < ApplicationController
+  require_login
+  
+  def index
+  end
+end
+
+Create a controller to contain authentication actions:
+
+class AccountController < ApplicationController
+  def login
+    process_login(User, params[:user]) do |login|
+      login.success { flash[:message] = 'Successful login' }
+      login.failure { flash[:error] = 'Invalid login' }
+    end
+  end
+  
+  def logout
+    process_logout
+  end
+end
+
+The login action should respond to both GET and POST (a GET request will render the login form, a POST request will process the login).
+
+The process_login method takes (at least) two parameters - the user model, as well as the params hash containing the submitted login and password. It also takes an optional third parameter - the location to redirect to after a successful login.
+
+process_login yields a login object which responds to success and failure, allowing you to define a block to execute in case of success or failure (before any redirection).
+
+Any request to logout will clear the user from the current session.
+
+
+To Be Implemented
+=================
+
+ - 'Remember me' functionality
+ - OpenID authentication
+ - Alternative login identifiers (i.e. use email rather than login)
+
+
+Copyright (c) 2008 [Sam Pohlenz], released under the MIT license
