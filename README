@@ -18,10 +18,12 @@ User.authenticate('invalid', 'user') => nil
 acts_as_authenticated_user will validate the presence of login and password but any extra validations will need to be defined in the User model.
 
 
-Example (Controller)
-====================
+Example (Protecting a controller)
+=================================
 
-In the controller you want to protect:
+Controllers and helpers have access to the logged_in? and current_user methods to determine the status of the current login.
+
+To protect a controller:
 
 class PrivatePageController < ApplicationController
   require_login
@@ -30,7 +32,22 @@ class PrivatePageController < ApplicationController
   end
 end
 
-Create a controller to contain authentication actions:
+require_login takes an options hash accepting the same parameters as before_filter (e.g. :only and :except for per-action filtering).
+
+An example combining all of these is:
+
+class AdminController < ApplicationController
+  require_login :only => [ :update, :create, :destroy ],
+                :with => Proc.new { |u| u.is_admin? },
+                :message => 'Admin privileges required',
+                :login_path => :admin_login_path
+end
+
+
+Example (Handling login/logout)
+=================================
+
+To handle login/logout, create a controller to contain authentication actions:
 
 class AccountController < ApplicationController
   def login
@@ -51,7 +68,7 @@ The process_login method takes (at least) two parameters - the user model, as we
 
 process_login yields a login object which responds to success and failure, allowing you to define a block to execute in case of success or failure (before any redirection).
 
-Any request to logout will clear the user from the current session.
+Any request to logout will clear the user from the current session. process_logout takes a single argument - the location to redirect to after logging out (optional, defaults to '/').
 
 
 To Be Implemented
