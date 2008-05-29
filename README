@@ -36,8 +36,12 @@ class PrivatePageController < ApplicationController
   end
 end
 
-require_login takes an options hash accepting the same parameters as before_filter (e.g. :only and :except for per-action filtering).
+require_login takes an options hash accepting the same parameters as before_filter (e.g. :only and :except for per-action filtering). Other options include:
 
+ :with => a callable object (Proc, lambda or method) which must return true for the user to have access to that page or controller
+ :message => what to set flash[:error] to if the login check fails (defaults to 'Login required.')
+ :login_path => the location of the login path (defaults to /login) [use a symbol if specifying a named route]
+ 
 An example combining all of these is:
 
 class AdminController < ApplicationController
