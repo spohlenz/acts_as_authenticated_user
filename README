@@ -1,7 +1,11 @@
 acts_as_authenticated_user
-=======================
+==========================
 
-acts_as_authenticated_user is a Rails user authentication plugin similar to the similarly named acts_as_authenticated.
+acts_as_authenticated_user is a Rails user authentication plugin which is in many respects comparable to the similarly named acts_as_authenticated.
+
+It differs from acts_as_authenticated in that it does not use generators (which leads to a User model cluttered with authentication logic). Instead, authentication logic is included automatically by calling an acts_ method (acts_as_authenticated despite its name, does not use any acts_ methods) within your user model.
+
+Similarly, abstractions are provided for controllers to keep as much authentication logic 'under the hood'. See below for examples.
 
 
 Example (Model)
@@ -79,4 +83,4 @@ To Be Implemented
  - Alternative login identifiers (i.e. use email rather than login)
 
 
-Copyright (c) 2008 [Sam Pohlenz], released under the MIT license
+Copyright (c) 2008 [Sam Pohlenz <sam@sampohlenz.com>], released under the MIT license
