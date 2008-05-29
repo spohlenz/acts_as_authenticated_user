@@ -5,13 +5,15 @@ class TestController < ActionController::Base
   end
 end
 
-class User < ActiveRecord::Base; end
+class User; end
 
 describe "Controller#current_user" do
   controller_name :test
   
   setup do
     TestController.send(:public, :current_user, :current_user=)
+    @user = mock('User instance')
+    User.stub!(:find_by_id).and_return(@user)
     controller.stub!(:user_model).and_return(User)
   end
   
@@ -21,7 +23,6 @@ describe "Controller#current_user" do
   
   it "should find the user if session id set" do
     session[:user] = 1234
-    @user = mock('User model')
     User.should_receive(:find_by_id).with(1234).and_return(@user)
     controller.current_user.should == @user
   end

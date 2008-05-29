@@ -2,7 +2,7 @@ module ActsAsAuthenticatedUser::ControllerExtensions
   module InstanceMethods
   protected
     def current_user
-      @current_user ||= user_model.find_by_id(session[:user])
+      @current_user ||= user_model.find_by_id(session[:user]) if session[:user]
     end
 
     def current_user=(user)
