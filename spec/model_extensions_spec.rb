@@ -28,8 +28,8 @@ describe 'A model which calls acts_as_authenticated_user' do
   end
   
   it "should be able to encrypt password and salt using SHA1" do
-    User.encrypt('12345678abc', 'abcdefg').should == 'cb366af975f0b948eda8d25cdc471ce3b090c493'
-    User.encrypt('87654321def', 'hello').should == '0d46fe8292c2bfbe471384468c7506a948eb5282'
+    DefaultUser.encrypt('12345678abc', 'abcdefg').should == 'cb366af975f0b948eda8d25cdc471ce3b090c493'
+    DefaultUser.encrypt('87654321def', 'hello').should == '0d46fe8292c2bfbe471384468c7506a948eb5282'
   end
   
   it "should validate presence of password and confirmation when password required" do

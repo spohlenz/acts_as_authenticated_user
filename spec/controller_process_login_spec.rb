@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/spec_helper'
 
 class AccountController < ActionController::Base
   def login
-    process_login(User, params[:user], :controller => 'foo', :action => 'bar') do |login|
+    process_login(User, params[:user], '/foo/bar') do |login|
       login.success { login_succeeded! }
       login.failure { login_failed! }
     end
@@ -52,7 +52,7 @@ describe "Controller#process_login (POST with successful authentication)" do
   
   it "should redirect to success path" do
     after_post do
-      response.should redirect_to(:controller => 'foo', :action => 'bar')
+      response.should redirect_to('/foo/bar')
     end
   end
   

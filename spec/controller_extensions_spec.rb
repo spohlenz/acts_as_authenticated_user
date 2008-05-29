@@ -5,6 +5,8 @@ class TestController < ActionController::Base
   end
 end
 
+class User < ActiveRecord::Base; end
+
 describe "Controller#current_user" do
   controller_name :test
   
@@ -103,11 +105,10 @@ describe "Controller#skip_login" do
 end
 
 
-describe "Controller#check_login (no current user)" do
+describe "Controller#check_login" do
   controller_name :test
   
   setup do
-    controller.stub!(:current_user).and_return(nil)
     TestController.send(:require_login, :login_path => '/login')
   end
   
@@ -115,45 +116,43 @@ describe "Controller#check_login (no current user)" do
     get :test_action
   end
   
-  it "should set an error message" do
-    after_get do
-      flash[:error].should_not be_nil
+  context 'no current user' do
+    setup do
+      controller.stub!(:current_user).and_return(nil)
     end
-  end
+    
+    it "should set an error message" do
+      after_get do
+        flash[:error].should_not be_nil
+      end
+    end
   
-  it "should redirect to login action" do
-    after_get do
-      response.should redirect_to('/login')
+    it "should redirect to login action" do
+      after_get do
+        response.should redirect_to('/login')
+      end
     end
-  end
   
-  it "should save the current request path" do
-    after_get do
-      session[:previous_location].should == '/test/test_action'
+    it "should save the current request path" do
+      after_get do
+        session[:previous_location].should == '/test/test_action'
+      end
     end
   end
-end
 
-
-describe "Controller#check_login (logged in user)" do
-  controller_name :test
-  
-  setup do
-    controller.stub!(:current_user).and_return(mock('User model'))
-    TestController.send(:require_login, :login_path => '/login')
-  end
-  
-  def do_get
-    get :test_action
-  end
-  
-  it "should not set an error" do
-    after_get do
-      flash[:error].should be_nil
+  context 'logged in user' do
+    setup do
+      controller.stub!(:current_user).and_return(mock('User model'))
     end
-  end
+    
+    it "should not set an error" do
+      after_get do
+        flash[:error].should be_nil
+      end
+    end
   
-  it "should not redirect" do
-    response.should_not be_redirect
+    it "should not redirect" do
+      response.should_not be_redirect
+    end
   end
 end
