@@ -1,6 +1,8 @@
 require File.dirname(__FILE__) + '/spec_helper'
 
 class TestController < ActionController::Base
+  #authenticated_user :model => User
+  
   def test_action
   end
 end
@@ -15,16 +17,6 @@ describe "Controller#current_user" do
     @user = mock('User instance')
     User.stub!(:find_by_id).and_return(@user)
     controller.stub!(:user_model).and_return(User)
-  end
-  
-  it "should be nil if session not set" do
-    controller.current_user.should be_nil
-  end
-  
-  it "should find the user if session id set" do
-    session[:user] = 1234
-    User.should_receive(:find_by_id).with(1234).and_return(@user)
-    controller.current_user.should == @user
   end
   
   it "should be settable" do
@@ -44,6 +36,23 @@ describe "Controller#current_user" do
     class View; end
     View.send(:include, controller.master_helper_module)
     View.new.should respond_to(:current_user)
+  end
+  
+  context "user id not in session" do
+    setup { session[:user] = nil }
+    
+    it "should be nil if session not set" do
+      controller.current_user.should be_nil
+    end
+  end
+  
+  context "user id set in session" do
+    setup { session[:user] = 1234 }
+    
+    it "should find the user if session id set" do
+      User.should_receive(:find_by_id).with(1234).and_return(@user)
+      controller.current_user.should == @user
+    end
   end
 end
 

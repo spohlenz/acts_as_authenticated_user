@@ -8,6 +8,13 @@ It differs from acts_as_authenticated in that it does not use generators (which 
 Similarly, abstractions are provided for controllers to keep as much authentication logic 'under the hood'. See below for examples.
 
 
+Installation
+============
+
+# cd vendor/rails
+# git clone git://github.com/spohlenz/acts_as_authenticated_user.git
+
+
 Example (Model)
 ===============
 
@@ -36,8 +43,8 @@ class User < ActiveRecord::Base
 end
 
 u = User.create(:login => 'sam', :password => 'foobar', :password_confirmation => 'foobar')
-User.authenticate('sam', 'foobar') => u
-User.authenticate('invalid', 'user') => nil
+User.authenticate('sam', 'foobar') #=> u
+User.authenticate('invalid', 'user') #=> nil
 
 acts_as_authenticated_user will validate the presence of login and password but any extra validations will need to be defined in the User model.
 

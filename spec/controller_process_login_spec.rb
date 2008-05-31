@@ -31,87 +31,89 @@ describe "Controller#process_login" do
     end
   end
   
-  describe "handling POST with valid authentication" do
-    setup do
-      @user = mock('User model', :id => 1234)
-      User.stub!(:authenticate).and_return(@user)
-      controller.stub!(:login_succeeded!)
-    end
+  describe "handling POST" do
+    context "valid authentication" do
+      setup do
+        @user = mock('User model', :id => 1234)
+        User.stub!(:authenticate).and_return(@user)
+        controller.stub!(:login_succeeded!)
+      end
   
-    def do_post
-      post :login, :user => { :login => 'login', :password => 'password' }
-    end
+      def do_post
+        post :login, :user => { :login => 'login', :password => 'password' }
+      end
   
-    it "should authenticate the user" do
-      before_post do
-        User.should_receive(:authenticate).with('login', 'password').and_return(@user)
+      it "should authenticate the user" do
+        before_post do
+          User.should_receive(:authenticate).with('login', 'password').and_return(@user)
+        end
+      end
+  
+      it "should redirect to success path" do
+        after_post do
+          response.should redirect_to('/foo/bar')
+        end
+      end
+  
+      it "should redirect to previous location if set" do
+        session[:previous_location] = '/last/location'
+        after_post do
+          response.should redirect_to('/last/location')
+        end
+      end
+  
+      it "should set the current user" do
+        before_post do
+          controller.should_receive(:current_user=).with(@user)
+        end
+      end
+  
+      it "should process success block" do
+        before_post do
+          controller.should_receive(:login_succeeded!)
+        end
+      end
+  
+      it "should not process failure block" do
+        before_post do
+          controller.should_not_receive(:login_failed!)
+        end
       end
     end
-  
-    it "should redirect to success path" do
-      after_post do
-        response.should redirect_to('/foo/bar')
-      end
-    end
-  
-    it "should redirect to previous location if set" do
-      session[:previous_location] = '/last/location'
-      after_post do
-        response.should redirect_to('/last/location')
-      end
-    end
-  
-    it "should set the current user" do
-      before_post do
-        controller.should_receive(:current_user=).with(@user)
-      end
-    end
-  
-    it "should process success block" do
-      before_post do
-        controller.should_receive(:login_succeeded!)
-      end
-    end
-  
-    it "should not process failure block" do
-      before_post do
-        controller.should_not_receive(:login_failed!)
-      end
-    end
-  end
 
 
-  describe "handling POST with invalid authentication" do
-    setup do
-      User.stub!(:authenticate).and_return(nil)
-      controller.stub!(:login_failed!)
-    end
-  
-    def do_post
-      post :login, :user => { :login => 'login', :password => 'invalid' }
-    end
-  
-    it "should attempt to authenticate the user" do
-      before_post do
-        User.should_receive(:authenticate).with('login', 'invalid').and_return(nil)
+    context "invalid authentication" do
+      setup do
+        User.stub!(:authenticate).and_return(nil)
+        controller.stub!(:login_failed!)
       end
-    end
   
-    it "should be successful" do
-      after_post do
-        response.should be_success
+      def do_post
+        post :login, :user => { :login => 'login', :password => 'invalid' }
       end
-    end
   
-    it "should not process success block" do
-      before_post do
-        controller.should_not_receive(:login_succeeded!)
+      it "should attempt to authenticate the user" do
+        before_post do
+          User.should_receive(:authenticate).with('login', 'invalid').and_return(nil)
+        end
       end
-    end
   
-    it "should process failure block" do
-      before_post do
-        controller.should_receive(:login_failed!)
+      it "should be successful" do
+        after_post do
+          response.should be_success
+        end
+      end
+  
+      it "should not process success block" do
+        before_post do
+          controller.should_not_receive(:login_succeeded!)
+        end
+      end
+  
+      it "should process failure block" do
+        before_post do
+          controller.should_receive(:login_failed!)
+        end
       end
     end
   end
