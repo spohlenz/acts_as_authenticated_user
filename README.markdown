@@ -9,59 +9,61 @@ Similarly, abstractions are provided for controllers to keep as much authenticat
 
 
 Installation
-============
+------------
 
-# cd vendor/rails
-# git clone git://github.com/spohlenz/acts_as_authenticated_user.git
+  # cd vendor/rails
+  # git clone git://github.com/spohlenz/acts_as_authenticated_user.git
 
 
 Example (Model)
-===============
+---------------
 
 The user model requires three fields: login, hashed_password and salt (all strings). This can be achieved with a migration such as:
 
-class CreateUsers < ActiveRecord::Migration
-  def self.up
-    create_table :users do |t|
-      t.string :login
-      t.string :hashed_password
-      t.string :salt
-      
-      ... your custom user fields ...
+  class CreateUsers < ActiveRecord::Migration
+    def self.up
+      create_table :users do |t|
+        t.string :login
+        t.string :hashed_password
+        t.string :salt
+        
+        ... your custom user fields ...
+      end
+    end
+    
+    def self.down
+      drop_table :users
     end
   end
-  
-  def self.down
-    drop_table :users
-  end
-end
 
 The model can then be declared as an authenticated user with:
 
-class User < ActiveRecord::Base
-  acts_as_authenticated_user
-end
+  class User < ActiveRecord::Base
+    acts_as_authenticated_user
+  end
 
-u = User.create(:login => 'sam', :password => 'foobar', :password_confirmation => 'foobar')
-User.authenticate('sam', 'foobar') #=> u
-User.authenticate('invalid', 'user') #=> nil
+Allowing the following behaviour:
+
+  u = User.create(:login => 'sam', :password => 'foobar', :password_confirmation => 'foobar')
+  User.authenticate('sam', 'foobar') #=> u
+  User.authenticate('invalid', 'user') #=> nil
 
 acts_as_authenticated_user will validate the presence of login and password but any extra validations will need to be defined in the User model.
 
 
 Example (Protecting a controller)
-=================================
+---------------------------------
 
 Controllers and helpers have access to the logged_in? and current_user methods to determine the status of the current login.
 
 To protect a controller:
 
-class PrivatePageController < ApplicationController
-  require_login
-  
-  def index
+  class PrivatePageController < ApplicationController
+    require_login
+
+    def index
+    end
   end
-end
 
 require_login takes an options hash accepting the same parameters as before_filter (e.g. :only and :except for per-action filtering). Other options include:
 
@@ -71,31 +73,31 @@ require_login takes an options hash accepting the same parameters as before_filt
  
 An example combining all of these is:
 
-class AdminController < ApplicationController
-  require_login :only => [ :update, :create, :destroy ],
-                :with => Proc.new { |u| u.is_admin? },
-                :message => 'Admin privileges required',
-                :login_path => :admin_login_path
-end
+  class AdminController < ApplicationController
+    require_login :only => [ :update, :create, :destroy ],
+                  :with => Proc.new { |u| u.is_admin? },
+                  :message => 'Admin privileges required',
+                  :login_path => :admin_login_path
+  end
 
 
 Example (Handling login/logout)
-=================================
+-------------------------------
 
 To handle login/logout, create a controller to contain authentication actions:
 
-class AccountController < ApplicationController
-  def login
-    process_login(User, params[:user]) do |login|
-      login.success { flash[:message] = 'Successful login' }
-      login.failure { flash[:error] = 'Invalid login' }
+  class AccountController < ApplicationController
+    def login
+      process_login(User, params[:user]) do |login|
+        login.success { flash[:message] = 'Successful login' }
+        login.failure { flash[:error] = 'Invalid login' }
+      end
+    end
+  
+    def logout
+      process_logout
     end
   end
-  
-  def logout
-    process_logout
-  end
-end
 
 The login action should respond to both GET and POST (a GET request will render the login form, a POST request will process the login).
 
@@ -107,7 +109,7 @@ Any request to logout will clear the user from the current session. process_logo
 
 
 To Be Implemented
-=================
+-----------------
 
  - 'Remember me' functionality
  - OpenID authentication
