@@ -39,6 +39,7 @@ module ActsAsAuthenticatedUser::ControllerExtensions
     
     def process_logout(redirect='/')
       self.current_user = nil
+      yield if block_given?
       redirect_to redirect
     end
   end

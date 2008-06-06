@@ -95,7 +95,9 @@ To handle login/logout, create a controller to contain authentication actions:
       end
     
       def logout
-        process_logout
+        process_logout do
+          flash[:message] = 'Logged out'
+        end
       end
     end
 
@@ -105,7 +107,7 @@ The `process\_login` method takes (at least) two parameters - the user model, as
 
 `process\_login` yields a login object which responds to success and failure, allowing you to define a block to execute in case of success or failure (before any redirection).
 
-Any request to logout will clear the user from the current session. `process\_logout` takes a single argument - the location to redirect to after logging out (optional, defaults to '/').
+Any request to logout will clear the user from the current session. `process\_logout` takes a single argument - the location to redirect to after logging out (optional, defaults to '/'). It also accepts an optional block which will be called on logout.
 
 
 To Be Implemented

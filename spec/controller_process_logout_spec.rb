@@ -2,7 +2,9 @@ require File.dirname(__FILE__) + '/spec_helper'
 
 class AccountController < ActionController::Base
   def logout
-    process_logout '/'
+    process_logout '/' do
+      flash[:message] = 'Logged out'
+    end
   end
 end
 
@@ -23,6 +25,12 @@ describe "Controller#process_logout" do
   it "should clear the current user" do
     before_get do
       controller.should_receive(:current_user=).with(nil)
+    end
+  end
+  
+  it "should call the block" do
+    after_get do
+      flash[:message].should_not be_nil
     end
   end
 end
