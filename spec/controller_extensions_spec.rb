@@ -12,7 +12,7 @@ class User; end
 describe "Controller#current_user" do
   controller_name :test
   
-  setup do
+  before(:each) do
     TestController.send(:public, :current_user, :current_user=)
     @user = mock('User instance')
     User.stub!(:find_by_id).and_return(@user)
@@ -39,7 +39,7 @@ describe "Controller#current_user" do
   end
   
   context "user id not in session" do
-    setup { session[:user] = nil }
+    before(:each) { session[:user] = nil }
     
     it "should be nil if session not set" do
       controller.current_user.should be_nil
@@ -47,7 +47,7 @@ describe "Controller#current_user" do
   end
   
   context "user id set in session" do
-    setup { session[:user] = 1234 }
+    before(:each) { session[:user] = 1234 }
     
     it "should find the user if session id set" do
       User.should_receive(:find_by_id).with(1234).and_return(@user)
@@ -60,7 +60,7 @@ end
 describe "Controller#logged_in?" do
   controller_name :test
   
-  setup do
+  before(:each) do
     TestController.send(:public, :logged_in?)
   end
   
@@ -82,10 +82,29 @@ describe "Controller#logged_in?" do
 end
 
 
+describe "Controller#authenticated_user" do
+  controller_name :test
+  
+  before(:each) do
+    TestController.send(:authenticated_user)
+  end
+  
+  ['user_model', 'current_user', 'current_user=', 'logged_in?'].each do |method|
+    it "should define protected method #{method}" do
+      controller.protected_methods.should include(method)
+    end
+  end
+  
+  it "should set user model to User" do
+    controller.send(:user_model).should == User
+  end
+end
+
+
 describe "Controller#require_login" do
   controller_name :test
   
-  setup do
+  before(:each) do
     TestController.send(:require_login, :login_path => '/login')
   end
   
@@ -93,7 +112,7 @@ describe "Controller#require_login" do
     TestController.find_filter(:check_login).should_not be_nil
   end
   
-  ['user_model', 'user_conditions', 'login_message', 'login_action'].each do |method|
+  ['user_conditions', 'check_login', 'login_action'].each do |method|
     it "should define protected method #{method}" do
       controller.protected_methods.should include(method)
     end
@@ -104,7 +123,7 @@ end
 describe "Controller#skip_login" do
   controller_name :test
   
-  setup do
+  before(:each) do
     TestController.send(:require_login, :login_path => '/login')
     TestController.send(:skip_login)
   end
@@ -118,7 +137,7 @@ end
 describe "Controller#check_login" do
   controller_name :test
   
-  setup do
+  before(:each) do
     TestController.send(:require_login, :login_path => '/login')
   end
   
@@ -127,7 +146,7 @@ describe "Controller#check_login" do
   end
   
   context 'no current user' do
-    setup do
+    before(:each) do
       controller.stub!(:current_user).and_return(nil)
     end
     
@@ -151,7 +170,7 @@ describe "Controller#check_login" do
   end
 
   context 'logged in user' do
-    setup do
+    before(:each) do
       controller.stub!(:current_user).and_return(mock('User model'))
     end
     

@@ -5,7 +5,7 @@ class DefaultUser < ActiveRecord::Base
 end
 
 describe 'A model which calls acts_as_authenticated_user' do
-  setup do
+  before(:each) do
     @user = DefaultUser.new(:login => 'test')
   end
   
@@ -93,7 +93,7 @@ end
 
 
 describe "Authenticating user" do
-  setup do
+  before(:each) do
     @user = DefaultUser.create(:login => 'login', :password => 'password', :password_confirmation => 'password')
   end
   

@@ -33,7 +33,7 @@ describe "Controller#process_login" do
   
   describe "handling POST" do
     context "valid authentication" do
-      setup do
+      before(:each) do
         @user = mock('User model', :id => 1234)
         User.stub!(:authenticate).and_return(@user)
         controller.stub!(:login_succeeded!)
@@ -83,7 +83,7 @@ describe "Controller#process_login" do
 
 
     context "invalid authentication" do
-      setup do
+      before(:each) do
         User.stub!(:authenticate).and_return(nil)
         controller.stub!(:login_failed!)
       end
