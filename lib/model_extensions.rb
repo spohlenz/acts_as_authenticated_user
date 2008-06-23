@@ -42,7 +42,7 @@ module ActsAsAuthenticatedUser::ModelExtensions
     
     def encrypt_password
       self.salt = Digest::SHA1.hexdigest("--#{Time.now.to_s}--#{login}--") if salt.blank?
-      self.hashed_password = self.class.encrypt(password, salt)
+      self.hashed_password = self.class.encrypt(password, salt) unless password.blank?
     end
   end
 end
