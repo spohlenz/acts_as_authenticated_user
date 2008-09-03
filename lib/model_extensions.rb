@@ -2,19 +2,20 @@ module ActsAsAuthenticatedUser::ModelExtensions
   module ActsMethods
     def acts_as_authenticated_user(options={})
       unless acts_as_authenticated_user?
-        validates_presence_of :login
-        validates_uniqueness_of :login
+        extend ClassMethods
+        include InstanceMethods
         
-        validates_presence_of :password, :password_confirmation, :if => :password_required?
-        validates_confirmation_of :password
+        setup_validation :validates_presence_of, :login, options[:messages]
+        setup_validation :validates_uniqueness_of, :login, options[:messages]
+        
+        setup_validation :validates_presence_of, :password, options[:messages], :if => :password_required?
+        setup_validation :validates_presence_of, :password_confirmation, options[:messages], :if => :password_required?
+        setup_validation :validates_confirmation_of, :password, options[:messages]
         
         attr_accessor :password
         attr_protected :hashed_password, :salt
         
         before_save :encrypt_password
-        
-        extend ClassMethods
-        include InstanceMethods
       end
     end
     
@@ -31,6 +32,13 @@ module ActsAsAuthenticatedUser::ModelExtensions
     
     def encrypt(password, salt)
       Digest::SHA1.hexdigest("--#{salt}--#{password}--")
+    end
+    
+  private
+    def setup_validation(validation, attribute, messages, options={})
+      message_name = "#{validation}_#{attribute}".to_sym
+      options[:message] = messages[message_name] if messages[message_name]
+      send(validation, attribute, options)
     end
   end
   
