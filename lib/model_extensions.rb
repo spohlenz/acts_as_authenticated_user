@@ -37,7 +37,7 @@ module ActsAsAuthenticatedUser::ModelExtensions
   private
     def setup_validation(validation, attribute, messages, options={})
       message_name = "#{validation}_#{attribute}".to_sym
-      options[:message] = messages[message_name] if messages[message_name]
+      options[:message] = messages[message_name] if messages && messages[message_name]
       send(validation, attribute, options)
     end
   end
