@@ -1,4 +1,9 @@
-require File.dirname(__FILE__) + '/../../../../spec/spec_helper'
+begin
+  require File.dirname(__FILE__) + '/../../../../spec/spec_helper'
+rescue LoadError
+  puts "You need to install rspec in your base app"
+  exit
+end
 
 plugin_spec_dir = File.dirname(__FILE__)
 ActiveRecord::Base.logger = Logger.new(plugin_spec_dir + "/debug.log")
@@ -20,5 +25,21 @@ Spec::Runner.configure do |config|
         yield
       end
     }
+  end
+  
+  def it_should_have_attr_accessor(sym)
+    it "should have accessor '#{sym}'" do
+      instance.should respond_to(sym)
+      instance.should respond_to("#{sym}=")
+    end
+  end
+  
+  def with_default_routing
+    with_routing do |set|
+      set.draw do |map|
+        map.connect ':controller/:action/:id'
+        yield
+      end
+    end
   end
 end

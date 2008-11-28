@@ -5,12 +5,20 @@ module ActsAsAuthenticatedUser::ModelExtensions
         extend ClassMethods
         include InstanceMethods
         
-        setup_validation :validates_presence_of, :login, options[:messages]
-        setup_validation :validates_uniqueness_of, :login, options[:messages]
+        class_eval <<-EOF
+          def self.identifier_column
+            :#{options[:identifier] || :login}
+          end
+        EOF
         
-        setup_validation :validates_presence_of, :password, options[:messages], :if => :password_required?
-        setup_validation :validates_presence_of, :password_confirmation, options[:messages], :if => :password_required?
-        setup_validation :validates_confirmation_of, :password, options[:messages]
+        unless options[:validate] == false
+          validates_presence_of identifier_column
+          validates_uniqueness_of identifier_column
+        
+          validates_presence_of :password, :if => :password_required?
+          validates_presence_of :password_confirmation, :if => :password_required?
+          validates_confirmation_of :password
+        end
         
         attr_accessor :password
         attr_protected :hashed_password, :salt
@@ -25,20 +33,13 @@ module ActsAsAuthenticatedUser::ModelExtensions
   end
   
   module ClassMethods
-    def authenticate(login, password)
-      u = find_by_login(login)
+    def authenticate(identifier, password)
+      u = find(:first, :conditions => { identifier_column => identifier })
       u if u && encrypt(password, u.salt) == u.hashed_password
     end
     
     def encrypt(password, salt)
       Digest::SHA1.hexdigest("--#{salt}--#{password}--")
-    end
-    
-  private
-    def setup_validation(validation, attribute, messages, options={})
-      message_name = "#{validation}_#{attribute}".to_sym
-      options[:message] = messages[message_name] if messages && messages[message_name]
-      send(validation, attribute, options)
     end
   end
   
@@ -49,7 +50,8 @@ module ActsAsAuthenticatedUser::ModelExtensions
     end
     
     def encrypt_password
-      self.salt = Digest::SHA1.hexdigest("--#{Time.now.to_s}--#{login}--") if salt.blank?
+      identifier = send(self.class.identifier_column)
+      self.salt = Digest::SHA1.hexdigest("--#{Time.now.to_s}--#{identifier}--") if salt.blank?
       self.hashed_password = self.class.encrypt(password, salt) unless password.blank?
     end
   end

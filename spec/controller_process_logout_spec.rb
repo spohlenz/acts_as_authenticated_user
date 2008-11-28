@@ -1,6 +1,8 @@
 require File.dirname(__FILE__) + '/spec_helper'
 
 class AccountController < ActionController::Base
+  authenticated_user
+  
   def logout
     process_logout '/' do
       flash[:message] = 'Logged out'
@@ -13,7 +15,7 @@ describe "Controller#process_logout" do
   
   def do_get
     session[:user] = 1234
-    get :logout
+    with_default_routing { get :logout }
   end
   
   it "should redirect to the provided path" do

@@ -11,29 +11,31 @@ module ActsAsAuthenticatedUser::ControllerExtensions
       
       if user
         @controller.instance_eval { self.current_user = user }
-        @controller.instance_eval(&@success)
+        @controller.instance_eval(&success)
         @controller.instance_eval do
           redirect_to session[:previous_location] || redirect_on_success
           session[:previous_location] = nil
         end
       else
-        @controller.instance_eval(&@failure)
+        @controller.instance_eval(&failure)
       end
     end
     
     def success(&block)
-      @success = block
+      @success = block if block_given?
+      @success
     end
     
     def failure(&block)
-      @failure = block
+      @failure = block if block_given?
+      @failure
     end
   end
   
   module InstanceMethods
-    def process_login(model, params, redirect_on_success='/', &block)
+    def process_login(params, redirect_on_success='/', &block)
       if request.post?
-        LoginHandler.new(self, model, &block).process(params, redirect_on_success)
+        LoginHandler.new(self, user_model, &block).process(params, redirect_on_success)
       end
     end
     

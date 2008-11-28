@@ -1,12 +1,13 @@
 require File.dirname(__FILE__) + '/spec_helper'
 
 class TestController < ActionController::Base
-  #authenticated_user :model => User
+  authenticated_user
   
   def test_action
   end
 end
 
+Object.send(:remove_const, :User)
 class User; end
 
 describe "Controller#current_user" do
@@ -16,7 +17,6 @@ describe "Controller#current_user" do
     TestController.send(:public, :current_user, :current_user=)
     @user = mock('User instance')
     User.stub!(:find_by_id).and_return(@user)
-    controller.stub!(:user_model).and_return(User)
   end
   
   it "should be settable" do
@@ -109,7 +109,7 @@ describe "Controller#require_login" do
   end
   
   it "should append the check_login before_filter" do
-    TestController.find_filter(:check_login).should_not be_nil
+    TestController.before_filters.should include(:check_login)
   end
   
   ['user_conditions', 'check_login', 'login_action'].each do |method|
@@ -129,7 +129,7 @@ describe "Controller#skip_login" do
   end
   
   it "should remove the check_login before_filter" do
-    TestController.find_filter(:check_login).should be_nil
+    TestController.before_filter.should_not include(:check_login)
   end
 end
 
@@ -142,7 +142,7 @@ describe "Controller#check_login" do
   end
   
   def do_get
-    get :test_action
+    with_default_routing { get :test_action }
   end
   
   context 'no current user' do

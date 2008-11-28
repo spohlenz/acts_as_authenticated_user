@@ -11,12 +11,11 @@ Similarly, abstractions are provided for controllers to keep as much authenticat
 Installation
 ------------
 
-    # cd vendor/rails
-    # git clone git://github.com/spohlenz/acts_as_authenticated_user.git
+    # script/plugin install git://github.com/spohlenz/acts_as_authenticated_user.git
 
 
-Example (Model)
----------------
+Model Setup
+-----------
 
 The user model requires three fields: `login`, `hashed_password` and `salt` (all strings). This can be achieved with a migration such as:
 
@@ -47,14 +46,35 @@ Allowing the following behaviour:
     u = User.create(:login => 'sam', :password => 'foobar', :password_confirmation => 'foobar')
     User.authenticate('sam', 'foobar') #=> u
     User.authenticate('invalid', 'user') #=> nil
+    
+If you want to use another field for your main identifier (e.g. `email` instead of `login`), replace `login` in your database schema and call `acts_as_authenticated_user` with `:identifier => :email`.
 
-*acts\_as\_authenticated\_user* will validate the presence of login and password but any extra validations will need to be defined in the User model.
+*acts\_as\_authenticated\_user* will validate the presence of login and password but any extra validations will need to be defined in the User model. If you want to disable validations altogether (for example to define your own validation messages), declare `acts_as_authenticated_user :validate => false` in your User model. If you do this, be sure to define at least the following validations:
+
+ - `validates_presence_of {identifier_column}`
+ - `validates_uniqueness_of {identifier_column}`
+ - `validates_presence_of :password, :if => :password_required?`
+ - `validates_presence_of :password_confirmation, :if => :password_required?`
+ - `validates_confirmation_of :password`
+
+`acts_as_authenticated_user` does not define any validations as to the length of the password. You will need to specify these yourself.
 
 
-Example (Protecting a controller)
----------------------------------
 
-Controllers and helpers have access to the `logged_in?` and `current_user` methods to determine the status of the current login.
+Controller Setup
+----------------
+
+In your `application_controller.rb`:
+
+    class ApplicationController < ActionController::Base
+      authenticated_user
+    end
+
+Controllers and helpers have access to the `logged_in?` and `current_user` methods to determine the current login status.
+
+
+Protecting a Controller
+-----------------------
 
 To protect a controller:
 
@@ -115,7 +135,6 @@ To Be Implemented
 
  - 'Remember me' functionality
  - OpenID authentication
- - Alternative login identifiers (i.e. use email rather than login)
 
 
 Copyright (c) 2008 Sam Pohlenz [<sam@sampohlenz.com>], released under the MIT license

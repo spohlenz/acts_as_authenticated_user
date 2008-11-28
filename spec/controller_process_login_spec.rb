@@ -1,8 +1,10 @@
 require File.dirname(__FILE__) + '/spec_helper'
 
 class AccountController < ActionController::Base
+  authenticated_user
+  
   def login
-    process_login(User, params[:user], '/foo/bar') do |login|
+    process_login(params[:user], '/foo/bar') do |login|
       login.success { login_succeeded! }
       login.failure { login_failed! }
     end
@@ -14,7 +16,7 @@ describe "Controller#process_login" do
   
   describe 'handling GET' do
     def do_get
-      get :login
+      with_default_routing { get :login }
     end
   
     it "should be successful" do
@@ -40,7 +42,9 @@ describe "Controller#process_login" do
       end
   
       def do_post
-        post :login, :user => { :login => 'login', :password => 'password' }
+        with_default_routing do
+          post :login, :user => { :login => 'login', :password => 'password' }
+        end
       end
   
       it "should authenticate the user" do
@@ -89,7 +93,9 @@ describe "Controller#process_login" do
       end
   
       def do_post
-        post :login, :user => { :login => 'login', :password => 'invalid' }
+        with_default_routing do
+          post :login, :user => { :login => 'login', :password => 'invalid' }
+        end
       end
   
       it "should attempt to authenticate the user" do

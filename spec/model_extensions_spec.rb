@@ -5,26 +5,32 @@ class DefaultUser < ActiveRecord::Base
 end
 
 describe 'A model which calls acts_as_authenticated_user' do
+  def instance
+    @user
+  end
+  
+  def valid_attributes
+    {
+      :login => 'test',
+      :password => 'password',
+      :password_confirmation => 'password'
+    }
+  end
+  
   before(:each) do
-    @user = DefaultUser.new(:login => 'test')
+    @user = DefaultUser.new
   end
   
-  it "should have a password accessor" do
-    @user.should respond_to(:password)
-    @user.should respond_to(:password=)
-  end
+  it_should_have_attr_accessor :password
   
-  it "should require a login" do
-    @user.should validate_presence_of(:login)
-  end
+  it_should_validate_presence_of :login
+  it_should_validate_uniqueness_of :login
   
-  it "should require a unique login" do
-    @user.should validate_uniqueness_of(:login)
-  end
+  it_should_not_mass_assign :hashed_password
+  it_should_not_mass_assign :salt
   
-  it "should disallow mass-assignment of hashed_password and salt" do
-    @user.should_not allow_mass_assignment_of(:hashed_password)
-    @user.should_not allow_mass_assignment_of(:salt)
+  it "identifier_column should default to :login" do
+    DefaultUser.identifier_column.should == :login
   end
   
   it "should be able to encrypt password and salt using SHA1" do
@@ -32,16 +38,22 @@ describe 'A model which calls acts_as_authenticated_user' do
     DefaultUser.encrypt('87654321def', 'hello').should == '0d46fe8292c2bfbe471384468c7506a948eb5282'
   end
   
-  it "should validate presence of password and confirmation when password required" do
-    @user.stub!(:password_required?).and_return(true)
-    @user.should validate_presence_of(:password)
-    @user.should validate_presence_of(:password_confirmation)
+  describe "when password is required" do
+    before(:each) do
+      @user.stub!(:password_required?).and_return(true)
+    end
+    
+    it_should_validate_presence_of :password
+    it_should_validate_presence_of :password_confirmation
   end
   
-  it "should not validate presence of password and confirmation when password not required" do
-    @user.stub!(:password_required?).and_return(false)
-    @user.should_not validate_presence_of(:password)
-    @user.should_not validate_presence_of(:password_confirmation)
+  describe "when password not required" do
+    before(:each) do
+      @user.stub!(:password_required?).and_return(false)
+    end
+    
+    it_should_not_validate_presence_of :password
+    it_should_not_validate_presence_of :password_confirmation
   end
   
   it "should require a password if hashed_password is blank" do
@@ -62,9 +74,9 @@ end
 
 
 describe "A user encrypting their password" do
-  setup do
+  before(:each) do
     @user = DefaultUser.new(:login => 'test', :password => 'mypassword')
-    Time.stub!(:now).and_return('Fri May 16 17:00:55 -0700 2008')
+    Time.stub!(:now).and_return(Time.parse('Fri May 16 17:00:55 -0700 2008'))
   end
   
   it "should encrypt password when saving" do
@@ -107,12 +119,48 @@ describe "Authenticating user" do
 end
 
 
-# describe "A model which calls acts_as_authenticated_user with an alternate identifier" do
-#   class EmailUser < ActiveRecord::Base
-#     acts_as_authenticated_user :identifier => :email
-#   end
-#   
-#   setup do
-#     @user = EmailUser.new(:email => 'test@test.com')
-#   end
-# end
+describe "A model which calls acts_as_authenticated_user with an alternate identifier" do
+  class EmailUser < ActiveRecord::Base
+    acts_as_authenticated_user :identifier => :email
+  end
+  
+  before(:each) do
+    @user = EmailUser.new
+  end
+  
+  def instance
+    @user
+  end
+  
+  def valid_attributes
+    {
+      :email => 'test@example.com',
+      :password => 'password',
+      :password_confirmation => 'password'
+    }
+  end
+  
+  it_should_validate_presence_of :email
+  it_should_validate_uniqueness_of :email
+  
+  it "identifier_column should be :email" do
+    EmailUser.identifier_column.should == :email
+  end
+  
+  it "should authenticate with email and password" do
+    @user = EmailUser.create(:email => 'foo@foo.com', :password => 'pass', :password_confirmation => 'pass')
+    EmailUser.authenticate('foo@foo.com', 'pass').should == @user
+  end
+end
+
+
+describe "A model which calls acts_as_authenticated_user with validations disabled" do
+  class NoValidationUser < ActiveRecord::Base
+    acts_as_authenticated_user :validate => false
+  end
+  
+  it "should be valid with no attributes" do
+    @user = NoValidationUser.new
+    @user.should be_valid
+  end
+end
