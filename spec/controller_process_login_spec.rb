@@ -48,7 +48,7 @@ describe "Controller#process_login" do
       end
   
       it "should authenticate the user" do
-        before_post do
+        during_post do
           User.should_receive(:authenticate).with('login', 'password').and_return(@user)
         end
       end
@@ -67,19 +67,19 @@ describe "Controller#process_login" do
       end
   
       it "should set the current user" do
-        before_post do
+        during_post do
           controller.should_receive(:current_user=).with(@user)
         end
       end
   
       it "should process success block" do
-        before_post do
+        during_post do
           controller.should_receive(:login_succeeded!)
         end
       end
   
       it "should not process failure block" do
-        before_post do
+        during_post do
           controller.should_not_receive(:login_failed!)
         end
       end
@@ -96,7 +96,7 @@ describe "Controller#process_login" do
         end
         
         it "should remember me" do
-          before_post do
+          during_post do
             @user.should_receive(:remember_me!)
           end
         end
@@ -117,7 +117,7 @@ describe "Controller#process_login" do
       end
   
       it "should attempt to authenticate the user" do
-        before_post do
+        during_post do
           User.should_receive(:authenticate).with('login', 'invalid').and_return(nil)
         end
       end
@@ -129,13 +129,13 @@ describe "Controller#process_login" do
       end
   
       it "should not process success block" do
-        before_post do
+        during_post do
           controller.should_not_receive(:login_succeeded!)
         end
       end
   
       it "should process failure block" do
-        before_post do
+        during_post do
           controller.should_receive(:login_failed!)
         end
       end
