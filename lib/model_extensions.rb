@@ -5,17 +5,15 @@ module ActsAsAuthenticatedUser::ModelExtensions
         extend ClassMethods
         include CoreInstanceMethods
         
-        if remember_me_columns_exist?
+        if supports_remember_me?
           include RememberMeInstanceMethods
-          class_inheritable_accessor :remember_me_duration
+          
+          cattr_accessor :remember_me_duration
           self.remember_me_duration = 30.days
         end
         
-        class_eval <<-EOF
-          def self.identifier_column
-            :#{options[:identifier] || :login}
-          end
-        EOF
+        cattr_accessor :identifier_column
+        self.identifier_column = options[:identifier] || :login
         
         unless options[:validate] == false
           validates_presence_of identifier_column
@@ -49,8 +47,9 @@ module ActsAsAuthenticatedUser::ModelExtensions
     end
   
   private
-    def remember_me_columns_exist?
-      column_names.include?('remember_token') &&
+    def supports_remember_me?
+      @supports_remember_me ||=
+        column_names.include?('remember_token') &&
         column_names.include?('remember_token_expires_at')
     end
   end
