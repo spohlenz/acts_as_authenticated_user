@@ -14,6 +14,10 @@ end
 describe "Controller#process_login" do
   controller_name :account
   
+  before(:each) do
+    User.stub!(:identifier_column).and_return(:login)
+  end
+  
   describe 'handling GET' do
     def do_get
       with_default_routing { get :login }

@@ -7,7 +7,7 @@ module ActsAsAuthenticatedUser::ControllerExtensions
     end
     
     def process(params, redirect_on_success)
-      user = @model.authenticate(params[:login], params[:password])
+      user = @model.authenticate(params[@model.identifier_column], params[:password])
       
       if user
         user.remember_me! if params[:remember_me] && @model.supports_remember_me?
