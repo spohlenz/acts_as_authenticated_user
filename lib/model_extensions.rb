@@ -3,7 +3,13 @@ module ActsAsAuthenticatedUser::ModelExtensions
     def acts_as_authenticated_user(options={})
       unless acts_as_authenticated_user?
         extend ClassMethods
-        include InstanceMethods
+        include CoreInstanceMethods
+        
+        if remember_me_columns_exist?
+          include RememberMeInstanceMethods
+          class_inheritable_accessor :remember_me_duration
+          self.remember_me_duration = 30.days
+        end
         
         class_eval <<-EOF
           def self.identifier_column
@@ -28,7 +34,7 @@ module ActsAsAuthenticatedUser::ModelExtensions
     end
     
     def acts_as_authenticated_user?
-      included_modules.include?(InstanceMethods)
+      included_modules.include?(CoreInstanceMethods)
     end
   end
   
@@ -41,9 +47,15 @@ module ActsAsAuthenticatedUser::ModelExtensions
     def encrypt(password, salt)
       Digest::SHA1.hexdigest("--#{salt}--#{password}--")
     end
+  
+  private
+    def remember_me_columns_exist?
+      column_names.include?('remember_token') &&
+        column_names.include?('remember_token_expires_at')
+    end
   end
   
-  module InstanceMethods
+  module CoreInstanceMethods
   private
     def password_required?
       hashed_password.blank? || !password.blank?
@@ -51,8 +63,26 @@ module ActsAsAuthenticatedUser::ModelExtensions
     
     def encrypt_password
       identifier = send(self.class.identifier_column)
-      self.salt = Digest::SHA1.hexdigest("--#{Time.now.to_s}--#{identifier}--") if salt.blank?
+      self.salt = digest(Time.now, identifier) if salt.blank?
       self.hashed_password = self.class.encrypt(password, salt) unless password.blank?
+    end
+    
+    def digest(*args)
+      Digest::SHA1.hexdigest("--#{args.join('--')}--")
+    end
+  end
+  
+  module RememberMeInstanceMethods
+    def remember_me!
+      self.remember_token = digest(Time.now, (1..10).map { rand })
+      self.remember_token_expires_at = self.class.remember_me_duration.from_now
+      save(false)
+    end
+    
+    def forget_me!
+      self.remember_token = nil
+      self.remember_token_expires_at = nil
+      save(false)
     end
   end
 end

@@ -42,4 +42,11 @@ Spec::Runner.configure do |config|
       end
     end
   end
+  
+  class Time
+    def self.freeze!
+      now = Time.now
+      stub!(:now).and_return(now)
+    end
+  end
 end

@@ -164,3 +164,44 @@ describe "A model which calls acts_as_authenticated_user with validations disabl
     @user.should be_valid
   end
 end
+
+
+describe "A model which calls acts_as_authenticated_user with remember_token fields" do
+  class MemorableUser < ActiveRecord::Base
+    acts_as_authenticated_user
+  end
+  
+  before(:each) do
+    @user = MemorableUser.new
+    Time.freeze!
+  end
+  
+  it "should remember me for 30 days" do
+    @user.should_receive(:save).with(false)
+    @user.remember_me!
+    
+    @user.remember_token.should_not be_blank
+    @user.remember_token_expires_at.should == 30.days.from_now
+  end
+  
+  it "should allow overriding of remember me duration" do
+    old_duration = MemorableUser.remember_me_duration
+    
+    MemorableUser.remember_me_duration = 2.weeks
+    @user.remember_me!
+    @user.remember_token_expires_at.should == 2.weeks.from_now
+    
+    MemorableUser.remember_me_duration = old_duration
+  end
+  
+  it "should forget me" do
+    @user.remember_token = 'mytoken'
+    @user.remember_token_expires_at = 2.weeks.from_now
+    
+    @user.should_receive(:save).with(false)
+    @user.forget_me!
+    
+    @user.remember_token.should be_nil
+    @user.remember_token_expires_at.should be_nil
+  end
+end

@@ -16,4 +16,12 @@ ActiveRecord::Schema.define(:version => 0) do
     t.column :hashed_password, :string
     t.column :salt, :string
   end
+  
+  create_table :memorable_users, :force => true do |t|
+    t.column :login, :string
+    t.column :hashed_password, :string
+    t.column :salt, :string
+    t.column :remember_token, :string
+    t.column :remember_token_expires_at, :datetime
+  end
 end

@@ -38,7 +38,7 @@ module ActsAsAuthenticatedUser::ControllerExtensions
           !!current_#{model}
         end
         
-        helper_method :current_user, :logged_in?
+        helper_method :current_#{model}, :logged_in?
       EOF
     end
     
@@ -54,7 +54,7 @@ module ActsAsAuthenticatedUser::ControllerExtensions
       
       class_eval <<-EOF
         def check_login
-          unless current_#{model} && user_conditions(current_#{model})
+          unless logged_in? && user_conditions(current_#{model})
             flash[:error] = "#{message}"
             session[:previous_location] = request.request_uri
             redirect_to login_action
