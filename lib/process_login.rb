@@ -43,7 +43,7 @@ module ActsAsAuthenticatedUser::ControllerExtensions
     
     def process_logout(redirect='/')
       current_user.forget_me! if user_model.supports_remember_me?
-      self.current_user = nil
+      reset_session
       yield if block_given?
       redirect_to redirect
     end

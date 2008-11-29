@@ -31,9 +31,9 @@ describe "Controller#process_logout" do
     end
   end
   
-  it "should clear the current user" do
+  it "should reset the session" do
     before_get do
-      controller.should_receive(:current_user=).with(nil)
+      controller.should_receive(:reset_session)
     end
   end
   

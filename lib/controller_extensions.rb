@@ -26,7 +26,7 @@ module ActsAsAuthenticatedUser::ControllerExtensions
         end
         
         def current_#{model}
-          @current_#{model} ||= user_model.find_by_id(session[:#{model}]) if session[:#{model}]
+          @current_#{model} ||= (login_from_session || login_from_cookie)
         end
         
         def current_#{model}=(u)
@@ -36,6 +36,19 @@ module ActsAsAuthenticatedUser::ControllerExtensions
         
         def logged_in?
           !!current_#{model}
+        end
+        
+        def login_from_session
+          user_model.find_by_id(session[:#{model}]) if session[:#{model}]
+        end
+        
+        def login_from_cookie
+          if cookies[:auth_token] && u = user_model.find_by_remember_token(cookies[:auth_token])
+            unless u.remember_token_expired?
+              self.current_#{model} = u
+              u
+            end
+          end
         end
         
         helper_method :current_#{model}, :logged_in?

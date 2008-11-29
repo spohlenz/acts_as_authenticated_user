@@ -194,6 +194,16 @@ describe "A model which calls acts_as_authenticated_user with remember_token fie
     MemorableUser.remember_me_duration = old_duration
   end
   
+  it "remember_token_expired? should be false if still valid" do
+    @user.remember_token_expires_at = 1.week.from_now
+    @user.remember_token_expired?.should be_false
+  end
+  
+  it "remember_token_expired? should be true if expired" do
+    @user.remember_token_expires_at = 1.week.ago
+    @user.remember_token_expired?.should be_true
+  end
+  
   it "should forget me" do
     @user.remember_token = 'mytoken'
     @user.remember_token_expires_at = 2.weeks.from_now

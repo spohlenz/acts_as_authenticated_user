@@ -82,5 +82,9 @@ module ActsAsAuthenticatedUser::ModelExtensions
       self.remember_token_expires_at = nil
       save(false)
     end
+    
+    def remember_token_expired?
+      remember_token_expires_at.nil? || remember_token_expires_at < Time.now
+    end
   end
 end

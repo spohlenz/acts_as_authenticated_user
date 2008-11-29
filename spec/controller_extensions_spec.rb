@@ -1,5 +1,8 @@
 require File.dirname(__FILE__) + '/spec_helper'
 
+Object.send(:remove_const, :User)
+class User; end
+
 class TestController < ActionController::Base
   authenticated_user
   
@@ -7,52 +10,104 @@ class TestController < ActionController::Base
   end
 end
 
-Object.send(:remove_const, :User)
-class User; end
-
 describe "Controller#current_user" do
   controller_name :test
   
   before(:each) do
-    TestController.send(:public, :current_user, :current_user=)
-    @user = mock('User instance')
+    @user = mock('User instance', :id => 1234)
     User.stub!(:find_by_id).and_return(@user)
+    
+    TestController.send(:public, :current_user, :current_user=)
+  end
+  
+  def do_get
+    with_default_routing { get :test_action }
   end
   
   it "should be settable" do
-    @user = mock('User model', :id => 1234)
     controller.current_user = @user
-    
     controller.current_user.should == @user
     session[:user].should == 1234
   end
   
-  it "should be nullable" do
-    controller.current_user = nil
-    controller.current_user.should be_nil
-  end
-  
   it "should be a helper method" do
-    class View; end
-    View.send(:include, controller.master_helper_module)
-    View.new.should respond_to(:current_user)
+    controller.class.helpers.should respond_to(:current_user)
   end
   
-  context "user id not in session" do
+  describe "no current user in session, cookie or http basic auth" do
     before(:each) { session[:user] = nil }
     
-    it "should be nil if session not set" do
-      controller.current_user.should be_nil
+    it "should be nil" do
+      after_get do
+        controller.current_user.should be_nil
+      end
     end
   end
   
-  context "user id set in session" do
-    before(:each) { session[:user] = 1234 }
-    
-    it "should find the user if session id set" do
-      User.should_receive(:find_by_id).with(1234).and_return(@user)
-      controller.current_user.should == @user
+  describe "login from session" do
+    before(:each) do
+      User.stub!(:find_by_id).and_return(@user)
+      session[:user] = 1234
     end
+    
+    it "should find the user" do
+      after_get do
+        controller.current_user.should == @user
+      end
+    end
+  end
+  
+  describe "login from cookie" do
+    describe "auth token is valid" do
+      before(:each) do
+        User.stub!(:find_by_remember_token).and_return(@user)
+        @user.stub!(:remember_token_expired?).and_return(false)
+        cookies[:auth_token] = 'valid token'
+      end
+      
+      it "should find the user" do
+        after_get do
+          controller.current_user.should == @user
+        end
+      end
+      
+      it "should set the session" do
+        after_get do
+          session[:user].should == 1234
+        end
+      end
+    end
+    
+    describe "auth token is invalid" do
+      before(:each) do
+        User.stub!(:find_by_remember_token).and_return(nil)
+        cookies[:auth_token] = 'invalid token'
+      end
+      
+      it "should be nil" do
+        after_get do
+          controller.current_user.should be_nil
+        end
+      end
+    end
+    
+    describe "auth token is expired" do
+      before(:each) do
+        User.stub!(:find_by_remember_token).and_return(@user)
+        @user.stub!(:remember_token_expired?).and_return(true)
+        cookies[:auth_token] = 'valid token'
+      end
+      
+      it "should be nil" do
+        after_get do
+          controller.current_user.should be_nil
+        end
+      end
+    end
+  end
+  
+  describe "login using http basic auth" do
+    
   end
 end
 
@@ -75,9 +130,7 @@ describe "Controller#logged_in?" do
   end
   
   it "should be a helper method" do
-    class View; end
-    View.send(:include, controller.master_helper_module)
-    View.new.should respond_to(:logged_in?)
+    controller.class.helpers.should respond_to(:logged_in?)
   end
 end
 
@@ -145,7 +198,7 @@ describe "Controller#check_login" do
     with_default_routing { get :test_action }
   end
   
-  context 'no current user' do
+  describe 'no current user' do
     before(:each) do
       controller.stub!(:current_user).and_return(nil)
     end
@@ -169,7 +222,7 @@ describe "Controller#check_login" do
     end
   end
 
-  context 'logged in user' do
+  describe 'logged in user' do
     before(:each) do
       controller.stub!(:current_user).and_return(mock('User model'))
     end
