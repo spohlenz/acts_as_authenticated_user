@@ -127,13 +127,18 @@ The `process_login` method takes (at least) one parameter - a params hash contai
 
 `process_login` yields a login object which responds to success and failure, allowing you to define a block to execute in case of success or failure (before any redirection).
 
-Any request to logout will clear the user from the current session. `process_logout` takes a single argument - the location to redirect to after logging out (optional, defaults to '/'). It also accepts an optional block which will be called on logout.
+Any request to logout will clear the current session. `process_logout` takes a single argument - the location to redirect to after logging out (optional, defaults to '/'). It also accepts an optional block which will be called on logout.
+
+
+Cookie login (Remember me)
+--------------------------
+
+`acts_as_authenticated_user` supports cookie-based logins as long as you have the fields `remember_token (string)` and `remember_token_expires_at (datetime)` in your users table. The remember token and cookie is automatically set in `process_login` if `:remember_me` is set in your `params[:user]` hash.
 
 
 To Be Implemented
 -----------------
 
- - 'Remember me' functionality
  - OpenID authentication
 
 
