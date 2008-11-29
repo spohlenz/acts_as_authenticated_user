@@ -83,6 +83,24 @@ describe "Controller#process_login" do
           controller.should_not_receive(:login_failed!)
         end
       end
+      
+      describe "with 'remember me' set" do
+        def do_post
+          with_default_routing do
+            post :login, :user => { :login => 'login', :password => 'password', :remember_me => '1' }
+          end
+        end
+        
+        before(:each) do
+          User.stub!(:supports_remember_me?).and_return(true)
+        end
+        
+        it "should remember me" do
+          before_post do
+            @user.should_receive(:remember_me!)
+          end
+        end
+      end
     end
 
 

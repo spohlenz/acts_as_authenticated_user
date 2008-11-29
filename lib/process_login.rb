@@ -10,6 +10,8 @@ module ActsAsAuthenticatedUser::ControllerExtensions
       user = @model.authenticate(params[:login], params[:password])
       
       if user
+        user.remember_me! if params[:remember_me] && @model.supports_remember_me?
+        
         @controller.instance_eval { self.current_user = user }
         @controller.instance_eval(&success)
         @controller.instance_eval do

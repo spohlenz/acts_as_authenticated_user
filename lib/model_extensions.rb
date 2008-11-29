@@ -45,8 +45,7 @@ module ActsAsAuthenticatedUser::ModelExtensions
     def encrypt(password, salt)
       Digest::SHA1.hexdigest("--#{salt}--#{password}--")
     end
-  
-  private
+    
     def supports_remember_me?
       @supports_remember_me ||=
         column_names.include?('remember_token') &&
