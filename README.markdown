@@ -121,7 +121,7 @@ To handle login/logout, create a controller to contain authentication actions:
       end
     end
 
-The login action should respond to both GET and POST (a GET request will render the login form, a POST request will process the login).
+The login action should respond to both GET and POST (a GET request will render the login form, a POST request will process the login). The login form should pass :login (or your custom identifier) and :password in the POST params.
 
 The `process_login` method yields a login object which responds to success and failure, allowing you to define a block to execute in case of success or failure (before any redirection). `process_login` also takes an optional parameter - the location to redirect to after a successful login.
 
