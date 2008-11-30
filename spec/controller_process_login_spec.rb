@@ -88,7 +88,7 @@ describe "Controller#process_login" do
         end
       end
       
-      describe "with 'remember me' set" do
+      describe "with 'remember_me' set to '1'" do
         def do_post
           with_default_routing do
             post :login, :user => { :login => 'login', :password => 'password', :remember_me => '1' }
@@ -111,6 +111,26 @@ describe "Controller#process_login" do
         it "should set auth token cookie" do
           after_post do
             cookies[:auth_token].first.should == 'my auth token'
+          end
+        end
+      end
+      
+      describe "with 'remember_me' set to '0'" do
+        def do_post
+          with_default_routing do
+            post :login, :user => { :login => 'login', :password => 'password', :remember_me => '0' }
+          end
+        end
+        
+        it "should not remember me" do
+          during_post do
+            @user.should_not_receive(:remember_me!)
+          end
+        end
+        
+        it "should not set auth token cookie" do
+          after_post do
+            cookies[:auth_token].should be_nil
           end
         end
       end

@@ -133,7 +133,7 @@ Any request to logout will clear the current session. `process_logout` takes a s
 Cookie login (Remember me)
 --------------------------
 
-`acts_as_authenticated_user` supports cookie-based logins as long as you have the fields `remember_token (string)` and `remember_token_expires_at (datetime)` in your users table. The remember token and cookie is automatically set in `process_login` if `:remember_me` is set in your `params[:user]` hash.
+`acts_as_authenticated_user` supports cookie-based logins as long as you have the fields `remember_token (string)` and `remember_token_expires_at (datetime)` in your users table. The remember token and cookie is automatically set in `process_login` if `:remember_me` is set to '1' in your `params[:user]` hash.
 
 
 To Be Implemented

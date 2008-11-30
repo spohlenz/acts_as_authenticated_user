@@ -10,7 +10,7 @@ module ActsAsAuthenticatedUser::ControllerExtensions
       user = @model.authenticate(params[@model.identifier_column], params[:password])
       
       if user
-        if params[:remember_me] && @model.supports_remember_me?
+        if params[:remember_me].to_i == 1 && @model.supports_remember_me?
           user.remember_me!
           
           cookie_expiry = @model.remember_me_duration.from_now
