@@ -40,7 +40,7 @@ describe "Controller#process_login" do
   describe "handling POST" do
     context "valid authentication" do
       before(:each) do
-        @user = mock('User model', :id => 1234)
+        @user = mock('User instance', :id => 1234)
         User.stub!(:authenticate).and_return(@user)
         controller.stub!(:login_succeeded!)
       end
@@ -96,12 +96,21 @@ describe "Controller#process_login" do
         end
         
         before(:each) do
+          @user.stub!(:remember_me!)
+          @user.stub!(:remember_token).and_return('my auth token')
           User.stub!(:supports_remember_me?).and_return(true)
+          User.stub!(:remember_me_duration).and_return(2.weeks)
         end
         
         it "should remember me" do
           during_post do
             @user.should_receive(:remember_me!)
+          end
+        end
+        
+        it "should set auth token cookie" do
+          after_post do
+            cookies[:auth_token].first.should == 'my auth token'
           end
         end
       end

@@ -18,10 +18,12 @@ describe "Controller#process_logout" do
     controller.stub!(:current_user).and_return(@user)
     
     User.stub!(:supports_remember_me?).and_return(false)
+    
+    cookies[:auth_token] = 'my auth token'
+    session[:user] = 1234
   end
   
   def do_get
-    session[:user] = 1234
     with_default_routing { get :logout }
   end
   
@@ -34,6 +36,12 @@ describe "Controller#process_logout" do
   it "should reset the session" do
     before_get do
       controller.should_receive(:reset_session)
+    end
+  end
+  
+  it "should remove the auth token cookie" do
+    after_get do
+      cookies[:auth_token].first.should be_nil
     end
   end
   

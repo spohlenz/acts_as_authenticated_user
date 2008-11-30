@@ -10,7 +10,17 @@ module ActsAsAuthenticatedUser::ControllerExtensions
       user = @model.authenticate(params[@model.identifier_column], params[:password])
       
       if user
-        user.remember_me! if params[:remember_me] && @model.supports_remember_me?
+        if params[:remember_me] && @model.supports_remember_me?
+          user.remember_me!
+          
+          cookie_expiry = @model.remember_me_duration.from_now
+          @controller.instance_eval do
+            cookies[:auth_token] = {
+              :value => user.remember_token,
+              :expires => cookie_expiry
+            }
+          end
+        end
         
         @controller.instance_eval { self.current_user = user }
         @controller.instance_eval(&success)
@@ -43,6 +53,7 @@ module ActsAsAuthenticatedUser::ControllerExtensions
     
     def process_logout(redirect='/')
       current_user.forget_me! if user_model.supports_remember_me?
+      cookies.delete(:auth_token)
       reset_session
       yield if block_given?
       redirect_to redirect
