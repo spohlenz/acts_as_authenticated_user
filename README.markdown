@@ -108,7 +108,7 @@ To handle login/logout, create a controller to contain authentication actions:
 
     class AccountController < ApplicationController
       def login
-        process_login(params[:user]) do |login|
+        process_login do |login|
           login.success { flash[:message] = 'Successful login' }
           login.failure { flash[:error] = 'Invalid login' }
         end
@@ -123,9 +123,7 @@ To handle login/logout, create a controller to contain authentication actions:
 
 The login action should respond to both GET and POST (a GET request will render the login form, a POST request will process the login).
 
-The `process_login` method takes (at least) one parameter - a params hash containing the submitted login and password. It also takes an optional parameter - the location to redirect to after a successful login.
-
-`process_login` yields a login object which responds to success and failure, allowing you to define a block to execute in case of success or failure (before any redirection).
+The `process_login` method yields a login object which responds to success and failure, allowing you to define a block to execute in case of success or failure (before any redirection). `process_login` also takes an optional parameter - the location to redirect to after a successful login.
 
 Any request to logout will clear the current session. `process_logout` takes a single argument - the location to redirect to after logging out (optional, defaults to '/'). It also accepts an optional block which will be called on logout.
 

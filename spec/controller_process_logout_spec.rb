@@ -4,7 +4,7 @@ class AccountController < ActionController::Base
   authenticated_user
   
   def logout
-    process_logout '/' do
+    process_logout('/') do
       flash[:message] = 'Logged out'
     end
   end

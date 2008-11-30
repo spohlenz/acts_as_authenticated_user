@@ -45,7 +45,7 @@ module ActsAsAuthenticatedUser::ControllerExtensions
   end
   
   module InstanceMethods
-    def process_login(params, redirect_on_success='/', &block)
+    def process_login(redirect_on_success='/', &block)
       if request.post?
         LoginHandler.new(self, user_model, &block).process(params, redirect_on_success)
       end

@@ -4,7 +4,7 @@ class AccountController < ActionController::Base
   authenticated_user
   
   def login
-    process_login(params[:user], '/foo/bar') do |login|
+    process_login('/foo/bar') do |login|
       login.success { login_succeeded! }
       login.failure { login_failed! }
     end
@@ -47,7 +47,8 @@ describe "Controller#process_login" do
   
       def do_post
         with_default_routing do
-          post :login, :user => { :login => 'login', :password => 'password' }
+          post :login, :login => 'login', :password => 'password'
+          
         end
       end
   
@@ -91,7 +92,7 @@ describe "Controller#process_login" do
       describe "with 'remember_me' set to '1'" do
         def do_post
           with_default_routing do
-            post :login, :user => { :login => 'login', :password => 'password', :remember_me => '1' }
+            post :login, :login => 'login', :password => 'password', :remember_me => '1'
           end
         end
         
@@ -118,7 +119,7 @@ describe "Controller#process_login" do
       describe "with 'remember_me' set to '0'" do
         def do_post
           with_default_routing do
-            post :login, :user => { :login => 'login', :password => 'password', :remember_me => '0' }
+            post :login, :login => 'login', :password => 'password', :remember_me => '0'
           end
         end
         
@@ -145,7 +146,7 @@ describe "Controller#process_login" do
   
       def do_post
         with_default_routing do
-          post :login, :user => { :login => 'login', :password => 'invalid' }
+          post :login, :login => 'login', :password => 'invalid'
         end
       end
   
