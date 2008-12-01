@@ -49,7 +49,7 @@ module ActsAsAuthenticatedUser::ModelExtensions
     def supports_remember_me?
       @supports_remember_me ||=
         column_names.include?('remember_token') &&
-        column_names.include?('remember_token_expires_at')
+        column_names.include?('remember_token_expires_at') rescue false
     end
   end
   
