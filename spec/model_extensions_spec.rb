@@ -176,6 +176,10 @@ describe "A model which calls acts_as_authenticated_user with remember_token fie
     Time.freeze!
   end
   
+  it "should support remember me" do
+    MemorableUser.supports_remember_me?.should be_true
+  end
+  
   it "should remember me for 30 days" do
     @user.should_receive(:save).with(false)
     @user.remember_me!
@@ -213,5 +217,27 @@ describe "A model which calls acts_as_authenticated_user with remember_token fie
     
     @user.remember_token.should be_nil
     @user.remember_token_expires_at.should be_nil
+  end
+end
+
+
+describe "A model which calls acts_as_authenicated_user with an OpenID identity field" do
+  class OpenIdUser < ActiveRecord::Base
+    acts_as_authenticated_user
+  end
+  
+  it "should support open id" do
+    OpenIdUser.supports_openid?.should be_true
+  end
+  
+  it "should not require a password if identity_url is provided" do
+    @user = OpenIdUser.new(:login => 'test', :identity_url => 'my.identity.com')
+    @user.should be_valid
+  end
+  
+  it "should normalize identity_url before validation" do
+    @user = OpenIdUser.new(:login => 'test', :identity_url => 'my.identity.com')
+    @user.valid?
+    @user.identity_url.should == 'http://my.identity.com/'
   end
 end

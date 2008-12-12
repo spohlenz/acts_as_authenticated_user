@@ -12,6 +12,11 @@ module ActsAsAuthenticatedUser::ModelExtensions
           self.remember_me_duration = 30.days
         end
         
+        if supports_openid?
+          include OpenIdInstanceMethods
+          before_validation :normalize_identity_url
+        end
+        
         cattr_accessor :identifier_column
         self.identifier_column = options[:identifier] || :login
         
@@ -51,11 +56,16 @@ module ActsAsAuthenticatedUser::ModelExtensions
         column_names.include?('remember_token') &&
         column_names.include?('remember_token_expires_at') rescue false
     end
+    
+    def supports_openid?
+      @supports_openid ||= column_names.include?('identity_url') rescue false
+    end
   end
   
   module CoreInstanceMethods
   private
     def password_required?
+      return false if self.class.supports_openid? && identity_url?
       hashed_password.blank? || !password.blank?
     end
     
@@ -85,6 +95,12 @@ module ActsAsAuthenticatedUser::ModelExtensions
     
     def remember_token_expired?
       remember_token_expires_at.nil? || remember_token_expires_at < Time.now
+    end
+  end
+  
+  module OpenIdInstanceMethods
+    def normalize_identity_url
+      self.identity_url = OpenIdAuthentication.normalize_url(identity_url) if identity_url?
     end
   end
 end

@@ -12,6 +12,9 @@ databases = YAML::load(IO.read(plugin_spec_dir + "/db/database.yml"))
 ActiveRecord::Base.establish_connection(databases[ENV["DB"] || "sqlite3"])
 load(File.join(plugin_spec_dir, "db", "schema.rb"))
 
+Object.send(:remove_const, :User) if defined?(User)
+Object.send(:remove_const, :AccountController) if defined?(AccountController)
+
 Spec::Runner.configure do |config|
   [:get, :post, :put, :delete, :render].each do |action|
     eval %Q{

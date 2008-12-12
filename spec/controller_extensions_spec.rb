@@ -1,6 +1,5 @@
 require File.dirname(__FILE__) + '/spec_helper'
 
-Object.send(:remove_const, :User)
 class User; end
 
 class TestController < ActionController::Base

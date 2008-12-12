@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + '/spec_helper'
 
+class User; end
+
 class AccountController < ActionController::Base
   authenticated_user
   
