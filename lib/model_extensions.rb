@@ -1,3 +1,5 @@
+require 'digest'
+
 module ActsAsAuthenticatedUser::ModelExtensions
   module ActsMethods
     def acts_as_authenticated_user(options={})
